@@ -17,9 +17,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
+        let apiPlugin = AWSAPIPlugin(modelRegistration: AmplifyModels())
         let dataStorePlugin = AWSDataStorePlugin(modelRegistration: AmplifyModels())
         do {
            Amplify.Logging.logLevel = .info
+           try Amplify.add(plugin:apiPlugin)
            try Amplify.add(plugin:dataStorePlugin)
            try Amplify.configure()
            print("Initialized Amplify");

@@ -9,8 +9,11 @@
 import SwiftUI
 import Amplify
 import AmplifyPlugins
+import Combine
 
 struct ContentView: View {
+    @State var todoSubscription: AnyCancellable?
+    
     var body: some View {
         Text("Hello, World!")
             .onAppear {
@@ -19,28 +22,17 @@ struct ContentView: View {
     }
     
     func performOnAppear() {
-        Amplify.DataStore.query(Todo.self,
-                                where: Todo.keys.priority.eq(Priority.high.rawValue),
-                                completion: { result in
-            switch(result) {
-            case .success(let todos):
-                guard todos.count == 1, var toDeleteTodo = todos.first else {
-                    print("Did not find exactly one todo, bailing")
-                    return;
-                }
-                Amplify.DataStore.delete(toDeleteTodo,
-                                       completion: { result in
-                                        switch(result) {
-                                        case .success(let savedTodo):
-                                            print("Deleted item: \(toDeleteTodo.name)")
-                                        case .failure(let error):
-                                            print("Could not update data in Datastore: \(error)")
-                                        }
+        subscribeTodos()
+    }
+    
+    func subscribeTodos() {
+        self.todoSubscription
+            = Amplify.DataStore.publisher(for: Todo.self)
+                .sink(receiveCompletion: { completion in
+                    print("Subscription has been completed: \(completion)")
+                }, receiveValue: { mutationEvent in
+                    print("Subscription got this value: \(mutationEvent)")
                 })
-            case .failure(let error):
-                print("Could not query DataStore: \(error)")
-            }
-        })
     }
 }
 
